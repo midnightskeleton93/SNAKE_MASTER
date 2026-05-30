@@ -1,0 +1,2 @@
+# SNAKE_MASTER
+نسخه ی وب SNAKE MASTER مخصوص IOS
