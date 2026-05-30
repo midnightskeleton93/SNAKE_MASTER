@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🐍 Midnight Snake</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    direction: rtl;
+    color: #fff;
+    overflow: hidden;
+}
+
+.container {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    margin: 0 auto;
+}
+
+/* ===== MAIN MENU ===== */
+#main-menu {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 20px 25px;
+    width: 300px;
+    margin: 20px auto;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.logo {
+    font-size: 60px;
+    margin-bottom: 5px;
+    animation: snakePulse 2s infinite;
+}
+
+@keyframes snakePulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.title {
+    font-size: 28px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #00f260, #0575e6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 20px;
+}
+
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.menu-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #fff;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+}
+
+.menu-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102,126,234,0.6);
+}
+
+.menu-btn:active {
+    transform: scale(0.97);
+}
+
+.menu-btn i {
+    font-size: 18px;
+}
+
+.menu-btn#btn-start {
+    background: linear-gradient(135deg, #00b4db, #0083b0);
+    padding: 14px 20px;
+    font-size: 18px;
+}
+
+.menu-btn#btn-secret {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.menu-btn#btn-about {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+/* ===== GAME CONTAINER ===== */
+#game-container {
+    display: none;
+    position: relative;
+    padding: 10px;
+}
+
+.hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.hud-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.hud-item i {
+    font-size: 16px;
+}
+
+#game-canvas {
+    display: block;
+    margin: 0 auto;
+    background: #1a1a2e;
+    border-radius: 16px;
+    border: 2px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1/1;
+    touch-action: none;
+}
+
+/* ===== D-PAD ===== */
+.dpad {
+    display: grid;
+    grid-template-areas:
+        ". up ."
+        "left center right"
+        ". down .";
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-width: 230px;
+    margin: 12px auto;
+    padding: 8px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+}
+
+.dpad-btn {
+    width: 100%;
+    aspect-ratio: 1/1;
+    border: none;
+    border-radius: 14px;
+    font-size: 22px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+}
+
+.dpad-btn:active {
+    transform: scale(0.9);
+    background: rgba(255,255,255,0.25);
+}
+
+.dpad-btn[data-dir="up"] { grid-area: up; }
+.dpad-btn[data-dir="left"] { grid-area: left; }
+.dpad-btn[data-dir="right"] { grid-area: right; }
+.dpad-btn[data-dir="down"] { grid-area: down; }
+.dpad-center {
+    background: transparent;
+    border: none;
+    grid-area: center;
+}
+
+/* ===== GAME OVER SCREEN ===== */
+#game-over-screen {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    z-index: 10;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    gap: 15px;
+}
+
+#game-over-screen.show {
+    display: flex;
+}
+
+.game-over-title {
+    font-size: 32px;
+    font-weight: 900;
+    color: #ff4757;
+}
+
+.go-score { font-size: 18px; color: #dfe6e9; }
+.go-best { font-size: 16px; color: #fdcb6e; }
+.go-coins { font-size: 16px; color: #ffeaa7; }
+
+.go-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.go-btn {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #fff;
+}
+
+.go-btn:first-child {
+    background: linear-gradient(135deg, #00b894, #00cec9);
+}
+
+.go-btn:last-child {
+    background: linear-gradient(135deg, #636e72, #2d3436);
+}
+
+.go-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* ===== MODALS ===== */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    position: relative;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 25px 20px;
+    width: 100%;
+    max-width: 380px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+    z-index: 101;
+    animation: modalSlide 0.3s ease-out;
+}
+
+@keyframes modalSlide {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.modal-close {
+    position: absolute;
+    top: 10px;
+    left: 15px;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    font-size: 28px;
+    cursor: pointer;
+    transition: color 0.3s;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: #fff;
+}
+
+.modal-body {
+    text-align: center;
+    font-size: 14px;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.7;
+}
+
+.modal-body p {
+    margin-bottom: 10px;
+}
+
+/* ===== SETTINGS ===== */
+.setting-group {
+    margin-bottom: 18px;
+    text-align: right;
+}
+
+.setting-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: rgba(255,255,255,0.8);
+}
+
+.setting-select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+}
+
+.setting-select option {
+    background: #1a1a2e;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102,126,234,0.5);
+}
+
+/* ===== SHOP / SKINS ===== */
+.shop-items, .skins-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.shop-item, .skin-item {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 15px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid transparent;
+}
+
+.shop-item:hover, .skin-item:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.shop-item.owned {
+    border-color: #00b894;
+}
+
+.shop-item-icon {
+    font-size: 32px;
+    margin-bottom: 6px;
+}
+
+.shop-item-name {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.shop-item-price {
+    font-size: 12px;
+    color: #ffeaa7;
+    margin-top: 4px;
+}
+
+.skin-item {
+    font-size: 40px;
+}
+
+.skin-item.active {
+    border-color: #fdcb6e;
+    box-shadow: 0 0 15px rgba(253,203,110,0.4);
+}
+
+.skin-item .skin-price {
+    font-size: 11px;
+    color: #ffeaa7;
+    margin-top: 4px;
+    display: block;
+}
+
+.skin-item .skin-owned-label {
+    font-size: 11px;
+    color: #00b894;
+    margin-top: 4px;
+    display: block;
+}
+
+/* ===== CHEAT TOGGLE ===== */
+.cheat-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid transparent;
+}
+
+.cheat-item:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.cheat-item.active {
+    border-color: #fdcb6e;
+    box-shadow: 0 0 10px rgba(253,203,110,0.3);
+}
+
+.cheat-item-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: right;
+}
+
+.cheat-item-icon {
+    font-size: 24px;
+}
+
+.cheat-item-text {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.cheat-item-desc {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+}
+
+.toggle-switch {
+    width: 44px;
+    height: 24px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    position: relative;
+    transition: all 0.3s;
+    flex-shrink: 0;
+}
+
+.toggle-switch.active {
+    background: #00b894;
+}
+
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: #fff;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: all 0.3s;
+}
+
+.toggle-switch.active::after {
+    left: 22px;
+}
+
+/* ===== SCROLLBAR ===== */
+.modal-content::-webkit-scrollbar {
+    width: 5px;
+}
+.modal-content::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- ===== MAIN MENU ===== -->
+<div id="main-menu">
+    <div class="logo">🐍</div>
+    <div class="title">Midnight Snake</div>
+    <div class="subtitle">🎮 توسط تیم MIDNIGHT GAMES</div>
+    <div class="menu-buttons">
+        <button class="menu-btn" id="btn-start"><i class="fas fa-play"></i> شروع بازی</button>
+        <button class="menu-btn" id="btn-shop"><i class="fas fa-shopping-cart"></i> فروشگاه</button>
+        <button class="menu-btn" id="btn-skins"><i class="fas fa-palette"></i> اسکین‌ها</button>
+        <button class="menu-btn" id="btn-settings"><i class="fas fa-cog"></i> تنظیمات</button>
+        <button class="menu-btn" id="btn-secret"><i class="fas fa-mask"></i> منوی مخفی</button>
+        <button class="menu-btn" id="btn-about"><i class="fas fa-info-circle"></i> درباره ما</button>
+    </div>
+</div>
+
+<!-- ===== GAME CONTAINER ===== -->
+<div id="game-container">
+    <div class="hud">
+        <div class="hud-item"><i class="fas fa-star"></i> <span id="score">0</span></div>
+        <div class="hud-item"><i class="fas fa-trophy"></i> <span id="highScore">0</span></div>
+        <div class="hud-item"><i class="fas fa-coins"></i> <span id="coins">0</span></div>
+    </div>
+    <canvas id="game-canvas" width="400" height="400"></canvas>
+    <div class="dpad">
+        <button class="dpad-btn" data-dir="up"><i class="fas fa-chevron-up"></i></button>
+        <button class="dpad-btn" data-dir="right"><i class="fas fa-chevron-left"></i></button>
+        <div class="dpad-center"></div>
+        <button class="dpad-btn" data-dir="left"><i class="fas fa-chevron-right"></i></button>
+        <button class="dpad-btn" data-dir="down"><i class="fas fa-chevron-down"></i></button>
+    </div>
+</div>
+
+<!-- ===== GAME OVER SCREEN ===== -->
+<div id="game-over-screen">
+    <div class="game-over-title">Game Over</div>
+    <div class="go-score">امتیاز: <span id="go-score">0</span></div>
+    <div class="go-best">بهترین امتیاز: <span id="go-best">0</span></div>
+    <div class="go-coins">سکه‌های کسب شده: <span id="go-coins">0</span></div>
+    <div class="go-buttons">
+        <button class="go-btn" id="btn-restart">دوباره</button>
+        <button class="go-btn" id="btn-home">منوی اصلی</button>
+    </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+<div class="modal" id="shop-modal">
+    <div class="modal-overlay" data-modal-close="shop-modal"></div>
+    <div class="modal-content">
+        <button class="modal-close" data-close="shop-modal">&times;</button>
+        <div class="modal-title">🛒 فروشگاه</div>
+        <div class="shop-items" id="shop-items"></div>
+    </div>
+</div>
+
+<div class="modal" id="skins-modal">
+    <div class="modal-overlay" data-modal-close="skins-modal"></div>
+    <div class="modal-content">
+        <button class="modal-close" data-close="skins-modal">&times;</button>
+        <div class="modal-title">🎨 اسکین‌ها</div>
+        <div class="skins-grid" id="skins-grid"></div>
+    </div>
+</div>
+
+<div class="modal" id="settings-modal">
+    <div class="modal-overlay" data-modal-close="settings-modal"></div>
+    <div class="modal-content">
+        <button class="modal-close" data-close="settings-modal">&times;</button>
+        <div class="modal-title">⚙️ تنظیمات</div>
+        <div id="settings-body">
+            <div class="setting-group">
+                <label class="setting-label">سرعت بازی:</label>
+                <select class="setting-select" id="speed-select">
+                    <option value="0">کند</option>
+                    <option value="1" selected>متوسط</option>
+                    <option value="2">تند</option>
+                    <option value="3">خیلی تند</option>
+                </select>
+            </div>
+            <div class="setting-group">
+                <label class="setting-label">زبان:</label>
+                <select class="setting-select" id="lang-select">
+                    <option value="fa">فارسی</option>
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                </select>
+            </div>
+            <button class="btn-primary" id="btn-save-settings">ذخیره تنظیمات</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SECRET CHEATS MODAL ===== -->
+<div class="modal" id="secret-modal">
+    <div class="modal-overlay" data-modal-close="secret-modal"></div>
+    <div class="modal-content">
+        <button class="modal-close" data-close="secret-modal">&times;</button>
+        <div class="modal-title">🤫 منوی مخفی</div>
+        <div class="modal-body">
+            <p style="margin-bottom:15px; color:rgba(255,255,255,0.6);">۴ تا آپشن ویژه برای شما!</p>
+            <div id="cheats-container"></div>
+            <p id="cheat-hint" style="margin-top:10px; font-size:11px; color:rgba(255,255,255,0.3);">این تنظیمات در مرورگر ذخیره می‌شوند</p>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="about-modal">
+    <div class="modal-overlay" data-modal-close="about-modal"></div>
+    <div class="modal-content">
+        <button class="modal-close" data-close="about-modal">&times;</button>
+        <div class="modal-title">ℹ️ درباره ما</div>
+        <div class="modal-body">
+            <p style="font-size:18px;">ساخته شده با ❤️ توسط تیم MIDNIGHT GAMES</p>
+            <p style="margin-top:15px; color:rgba(255,255,255,0.6);">برای ارتباط با ما و دریافت بازی‌های بیشتر، به کانال بله ما بپیوندید:</p>
+            <a href="https://ble.ir/Midnight_Games" target="_blank" style="display:inline-block; margin-top:12px; padding:10px 24px; background:#1e90ff; color:#fff; border-radius:12px; text-decoration:none; font-weight:700;"><i class="fas fa-link"></i> ble.ir/Midnight_Games</a>
+        </div>
+    </div>
+</div>
+
+</div><!-- container -->
+
+<script>
+// =============================================
+// ===== SOUND ENGINE (Web Audio API) =====
+// =============================================
+const SoundEngine = {
+    ctx: null,
+
+    init() {
+        // Create AudioContext on first user interaction
+        if (!this.ctx) {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    },
+
+    // --- Menu click / UI button ---
+    playMenu() {
+        try {
+            this.init();
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(660, this.ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.08);
+            gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+            osc.start(this.ctx.currentTime);
+            osc.stop(this.ctx.currentTime + 0.12);
+        } catch(e) {}
+    },
+
+    // --- Snake eating food ---
+    playEat() {
+        try {
+            this.init();
+            // Two quick rising tones
+            [523, 659].forEach((freq, i) => {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.type = 'sine';
+                const t = this.ctx.currentTime + i * 0.08;
+                osc.frequency.setValueAtTime(freq, t);
+                gain.gain.setValueAtTime(0.25, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+                osc.start(t);
+                osc.stop(t + 0.12);
+            });
+        } catch(e) {}
+    },
+
+    // --- Collision / Game Over ---
+    playCollision() {
+        try {
+            this.init();
+            // Deep descending noise + crash
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(60, this.ctx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+            osc.start(this.ctx.currentTime);
+            osc.stop(this.ctx.currentTime + 0.35);
+            // Add a noise burst
+            const bufferSize = this.ctx.sampleRate * 0.2;
+            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.05));
+            }
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = buffer;
+            const noiseGain = this.ctx.createGain();
+            noise.connect(noiseGain);
+            noiseGain.connect(this.ctx.destination);
+            noiseGain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
+            noise.start(this.ctx.currentTime);
+        } catch(e) {}
+    },
+
+    // --- Click / Tap (for any button or empty space) ---
+    playClick() {
+        try {
+            this.init();
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1000, this.ctx.currentTime);
+            gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+            osc.start(this.ctx.currentTime);
+            osc.stop(this.ctx.currentTime + 0.05);
+        } catch(e) {}
+    }
+};
+
+// =============================================
+// ===== GAME STATE =====
+// =============================================
+const gameState = {
+    running: false,
+    paused: false,
+    gameOver: false,
+    score: 0,
+    highScore: parseInt(localStorage.getItem('snakeHighScore')) || 0,
+    coins: parseInt(localStorage.getItem('snakeCoins')) || 0,
+    speedLevel: parseInt(localStorage.getItem('snakeSpeedLevel')) || 1,
+    lang: localStorage.getItem('snakeLang') || 'fa',
+    skin: localStorage.getItem('snakeSkin') || 'default',
+    ownedSkins: JSON.parse(localStorage.getItem('snakeOwnedSkins')) || ['default'],
+    cheats: JSON.parse(localStorage.getItem('snakeCheats')) || {
+        x10Coins: false,
+        infiniteCoins: false,
+        freeShop: false,
+        freeSkins: false
+    }
+};
+
+// =============================================
+// ===== TRANSLATIONS =====
+// =============================================
+const translations = {
+    fa: {
+        start: 'شروع بازی', shop: 'فروشگاه', skins: 'اسکین‌ها',
+        settings: 'تنظیمات', secret: 'منوی مخفی', about: 'درباره ما',
+        score: 'امتیاز', highScore: 'بهترین امتیاز', coins: 'سکه',
+        gameOver: 'Game Over', restart: 'دوباره', home: 'منوی اصلی',
+        speed: 'سرعت بازی', lang: 'زبان', save: 'ذخیره تنظیمات',
+        slow: 'کند', medium: 'متوسط', fast: 'تند', insane: 'خیلی تند',
+        coinsEarned: 'سکه‌های کسب شده',
+        aboutText: 'ساخته شده با ❤️ توسط تیم MIDNIGHT GAMES',
+        aboutLink: 'ble.ir/Midnight_Games'
+    },
+    en: {
+        start: 'Start Game', shop: 'Shop', skins: 'Skins',
+        settings: 'Settings', secret: 'Secret Menu', about: 'About Us',
+        score: 'Score', highScore: 'Best Score', coins: 'Coins',
+        gameOver: 'Game Over', restart: 'Restart', home: 'Main Menu',
+        speed: 'Game Speed', lang: 'Language', save: 'Save Settings',
+        slow: 'Slow', medium: 'Medium', fast: 'Fast', insane: 'Insane',
+        coinsEarned: 'Coins Earned',
+        aboutText: 'Made with ❤️ by MIDNIGHT GAMES Team',
+        aboutLink: 'ble.ir/Midnight_Games'
+    },
+    ar: {
+        start: 'ابدأ اللعبة', shop: 'المتجر', skins: 'الجلود',
+        settings: 'الإعدادات', secret: 'القائمة السرية', about: 'معلومات عنا',
+        score: 'النقاط', highScore: 'أفضل نتيجة', coins: 'العملات',
+        gameOver: 'انتهت اللعبة', restart: 'إعادة', home: 'القائمة الرئيسية',
+        speed: 'سرعة اللعبة', lang: 'اللغة', save: 'حفظ الإعدادات',
+        slow: 'بطيء', medium: 'متوسط', fast: 'سريع', insane: 'سريع جداً',
+        coinsEarned: 'العملات المكتسبة',
+        aboutText: 'صنع بـ ❤️ بواسطة فريق MIDNIGHT GAMES',
+        aboutLink: 'ble.ir/Midnight_Games'
+    }
+};
+
+// =============================================
+// ===== GAME VARIABLES =====
+// =============================================
+const canvas = document.getElementById('game-canvas');
+const ctx = canvas.getContext('2d');
+const gridSize = 20;
+let tileCount = canvas.width / gridSize;
+
+let snake = [];
+let direction = { x: 1, y: 0 };
+let nextDirection = { x: 1, y: 0 };
+let food = {};
+let obstacles = [];
+let powerup = null;
+let combo = 0;
+let lastUpdate = 0;
+
+const speedLevels = [200, 130, 80, 50];
+
+// ===== DOM REFS =====
+const mainMenu = document.getElementById('main-menu');
+const gameContainer = document.getElementById('game-container');
+const gameOverScreen = document.getElementById('game-over-screen');
+const scoreEl = document.getElementById('score');
+const highScoreEl = document.getElementById('highScore');
+const coinsEl = document.getElementById('coins');
+const goScoreEl = document.getElementById('go-score');
+const goBestEl = document.getElementById('go-best');
+const goCoinsEl = document.getElementById('go-coins');
+const shopItemsEl = document.getElementById('shop-items');
+const skinsGridEl = document.getElementById('skins-grid');
+const speedSelect = document.getElementById('speed-select');
+const langSelect = document.getElementById('lang-select');
+const cheatsContainer = document.getElementById('cheats-container');
+
+// =============================================
+// ===== SKINS & SHOP =====
+// =============================================
+const skins = [
+    { id: 'default', name: 'کلاسیک', icon: '🟢', price: 0 },
+    { id: 'gold', name: 'طلایی', icon: '🟡', price: 500 },
+    { id: 'blue', name: 'آبی', icon: '🔵', price: 300 },
+    { id: 'red', name: 'قرمز', icon: '🔴', price: 300 },
+    { id: 'cyan', name: 'فیروزه‌ای', icon: '🩵', price: 400 },
+    { id: 'pink', name: 'صورتی', icon: '🩷', price: 400 },
+    { id: 'rainbow', name: 'رنگین کمان', icon: '🌈', price: 1000 },
+    { id: 'neon', name: 'نئون', icon: '💚', price: 800 },
+];
+
+const skinColors = {
+  default: { head: '#00f260', body: '#0575e6' },
+  gold: { head: '#FFD700', body: '#DAA520' },
+  blue: { head: '#00BFFF', body: '#1E90FF' },
+  red: { head: '#FF4B4B', body: '#C0392B' },
+  cyan: { head: '#00FFFF', body: '#00CED1' },
+  pink: { head: '#FF69B4', body: '#FF1493' },
+  rainbow: { head: '#FF8C00', body: '#8A2BE2' },
+  neon: { head: '#39FF14', body: '#00FF88' }
+};
+
+
+const shopItems = [
+    { id: 'extraLife', name: 'جان اضافه', icon: '❤️', price: 200 },
+    { id: 'slowMo', name: 'کاهش سرعت', icon: '🐢', price: 300 },
+    { id: 'doubleCoins', name: 'سکه دو برابر', icon: '💰', price: 500 },
+];
+
+// ===== CHEATS CONFIG =====
+const cheatItems = [
+    { key: 'x10Coins', icon: '💰', name: 'سکه ۱۰ برابر', desc: 'هر غذا ۱۰ برابر سکه می‌دهد' },
+    { key: 'infiniteCoins', icon: '♾️', name: 'سکه بی‌نهایت', desc: 'سکه‌های شما همیشه زیاد می‌شود' },
+    { key: 'freeShop', icon: '🛒', name: 'فروشگاه رایگان', desc: 'همه آیتم‌های فروشگاه رایگان' },
+    { key: 'freeSkins', icon: '🎨', name: 'اسکین رایگان', desc: 'همه اسکین‌ها رایگان' },
+];
+
+// =============================================
+// ===== UTILITY FUNCTIONS =====
+// =============================================
+function getTranslation(key) {
+    const lang = gameState.lang;
+    return translations[lang]?.[key] || translations.fa[key] || key;
+}
+
+function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// =============================================
+// ===== MODAL FUNCTIONS =====
+// =============================================
+function showModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.classList.add('show');
+        modal.style.display = 'flex';
+    }
+}
+
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+    }
+}
+
+// =============================================
+// ===== SETTINGS =====
+// =============================================
+function loadSettings() {
+    speedSelect.value = gameState.speedLevel;
+    langSelect.value = gameState.lang;
+}
+
+function saveSettings() {
+    gameState.speedLevel = parseInt(speedSelect.value);
+    gameState.lang = langSelect.value;
+    localStorage.setItem('snakeSpeedLevel', gameState.speedLevel);
+    localStorage.setItem('snakeLang', gameState.lang);
+    closeModal('settings-modal');
+    updateUIText();
+}
+
+function updateUIText() {
+    document.getElementById('btn-start').innerHTML = `<i class="fas fa-play"></i> ${getTranslation('start')}`;
+    document.getElementById('btn-shop').innerHTML = `<i class="fas fa-shopping-cart"></i> ${getTranslation('shop')}`;
+    document.getElementById('btn-skins').innerHTML = `<i class="fas fa-palette"></i> ${getTranslation('skins')}`;
+    document.getElementById('btn-settings').innerHTML = `<i class="fas fa-cog"></i> ${getTranslation('settings')}`;
+    document.getElementById('btn-secret').innerHTML = `<i class="fas fa-mask"></i> ${getTranslation('secret')}`;
+    document.getElementById('btn-about').innerHTML = `<i class="fas fa-info-circle"></i> ${getTranslation('about')}`;
+    document.querySelector('.game-over-title').textContent = getTranslation('gameOver');
+    document.getElementById('btn-restart').textContent = getTranslation('restart');
+    document.getElementById('btn-home').textContent = getTranslation('home');
+    document.querySelectorAll('.setting-label')[0].textContent = getTranslation('speed');
+    document.querySelectorAll('.setting-label')[1].textContent = getTranslation('lang');
+    document.getElementById('btn-save-settings').textContent = getTranslation('save');
+    const speedOpts = document.querySelectorAll('#speed-select option');
+    speedOpts[0].textContent = getTranslation('slow');
+    speedOpts[1].textContent = getTranslation('medium');
+    speedOpts[2].textContent = getTranslation('fast');
+    speedOpts[3].textContent = getTranslation('insane');
+    const aboutText = document.querySelector('#about-modal .modal-body p:first-child');
+    if (aboutText) aboutText.textContent = getTranslation('aboutText');
+    const aboutLink = document.querySelector('#about-modal .modal-body a');
+    if (aboutLink) aboutLink.textContent = getTranslation('aboutLink');
+}
+
+// =============================================
+// ===== CHEATS =====
+// =============================================
+function saveCheats() {
+    localStorage.setItem('snakeCheats', JSON.stringify(gameState.cheats));
+}
+
+function renderCheats() {
+    cheatsContainer.innerHTML = '';
+    cheatItems.forEach(cheat => {
+        const div = document.createElement('div');
+        div.className = 'cheat-item';
+        if (gameState.cheats[cheat.key]) div.classList.add('active');
+        div.innerHTML = `
+            <div class="cheat-item-left">
+                <span class="cheat-item-icon">${cheat.icon}</span>
+                <div>
+                    <div class="cheat-item-text">${cheat.name}</div>
+                    <div class="cheat-item-desc">${cheat.desc}</div>
+                </div>
+            </div>
+            <div class="toggle-switch ${gameState.cheats[cheat.key] ? 'active' : ''}"></div>
+        `;
+        div.addEventListener('click', (e) => {
+            e.stopPropagation();
+            gameState.cheats[cheat.key] = !gameState.cheats[cheat.key];
+            saveCheats();
+            renderCheats();
+            SoundEngine.playClick();
+        });
+        cheatsContainer.appendChild(div);
+    });
+}
+
+// =============================================
+// ===== SHOP FUNCTIONS =====
+// =============================================
+function renderShop() {
+    shopItemsEl.innerHTML = '';
+    shopItems.forEach(item => {
+        const div = document.createElement('div');
+        const isFree = gameState.cheats.freeShop;
+        div.className = 'shop-item';
+        div.innerHTML = `
+            <div class="shop-item-icon">${item.icon}</div>
+            <div class="shop-item-name">${item.name}</div>
+            <div class="shop-item-price">💰 ${isFree ? 'رایگان' : item.price}</div>
+        `;
+        div.addEventListener('click', (e) => {
+            e.stopPropagation();
+            buyShopItem(item.id);
+        });
+        shopItemsEl.appendChild(div);
+    });
+}
+
+function buyShopItem(itemId) {
+    const item = shopItems.find(i => i.id === itemId);
+    if (!item) return;
+    const isFree = gameState.cheats.freeShop;
+    if (!isFree && gameState.coins < item.price) {
+        alert('سکه کافی نیست!');
+        SoundEngine.playCollision();
+        return;
+    }
+    if (!isFree) {
+        gameState.coins -= item.price;
+    }
+    localStorage.setItem('snakeCoins', gameState.coins);
+    updateHUD();
+    renderShop();
+    SoundEngine.playEat();
+    alert(`${item.name} خریداری شد!`);
+}
+
+// =============================================
+// ===== SKINS FUNCTIONS =====
+// =============================================
+function renderSkins() {
+    skinsGridEl.innerHTML = '';
+    skins.forEach(skin => {
+        const div = document.createElement('div');
+        div.className = 'skin-item';
+        if (skin.id === gameState.skin) div.classList.add('active');
+        
+        const owned = gameState.ownedSkins.includes(skin.id);
+        const isFree = gameState.cheats.freeSkins;
+        
+        let priceHtml = '';
+        if (owned) {
+            priceHtml = `<span class="skin-owned-label">✅ مالکیت</span>`;
+        } else if (skin.price === 0) {
+            priceHtml = `<span class="skin-owned-label">✅ رایگان</span>`;
+        } else if (isFree) {
+            priceHtml = `<span class="skin-price">💰 رایگان (تخفیف)</span>`;
+        } else {
+            priceHtml = `<span class="skin-price">💰 ${skin.price} سکه</span>`;
+        }
+        
+        div.innerHTML = `${skin.icon}${priceHtml}`;
+        div.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectSkin(skin.id);
+        });
+        skinsGridEl.appendChild(div);
+    });
+}
+
+function selectSkin(skinId) {
+    if (!gameState.ownedSkins.includes(skinId)) {
+        const skin = skins.find(s => s.id === skinId);
+        if (!skin) return;
+        const isFree = gameState.cheats.freeSkins;
+        if (!isFree && gameState.coins < skin.price) {
+            alert('سکه کافی نیست!');
+            SoundEngine.playCollision();
+            return;
+        }
+        if (!isFree && skin.price > 0) {
+            gameState.coins -= skin.price;
+        }
+        gameState.ownedSkins.push(skinId);
+        localStorage.setItem('snakeCoins', gameState.coins);
+        localStorage.setItem('snakeOwnedSkins', JSON.stringify(gameState.ownedSkins));
+        updateHUD();
+        SoundEngine.playEat();
+    }
+    gameState.skin = skinId;
+    localStorage.setItem('snakeSkin', skinId);
+    renderSkins();
+}
+
+// =============================================
+// ===== RESET GAME STATE =====
+// =============================================
+function resetGameState() {
+    tileCount = canvas.width / gridSize;
+    snake = [
+        { x: 5, y: Math.floor(tileCount / 2) },
+        { x: 4, y: Math.floor(tileCount / 2) },
+        { x: 3, y: Math.floor(tileCount / 2) }
+    ];
+    direction = { x: 1, y: 0 };
+    nextDirection = { x: 1, y: 0 };
+    combo = 0;
+    generateFood();
+    obstacles = [];
+    powerup = null;
+    gameState.score = 0;
+    gameState.gameOver = false;
+    gameState.paused = false;
+    lastUpdate = 0;
+}
+
+// =============================================
+// ===== FOOD GENERATION =====
+// =============================================
+function generateFood() {
+    let pos;
+    do {
+        pos = {
+            x: randomInt(1, tileCount - 2),
+            y: randomInt(1, tileCount - 2)
+        };
+    } while (
+        snake.some(s => s.x === pos.x && s.y === pos.y) ||
+        obstacles.some(o => o.x === pos.x && o.y === pos.y) ||
+        (powerup && powerup.x === pos.x && powerup.y === pos.y)
+    );
+    food = pos;
+}
+
+// =============================================
+// ===== START GAME =====
+// =============================================
+function startGame() {
+    resetGameState();
+    gameState.running = true;
+    mainMenu.style.display = 'none';
+    gameContainer.style.display = 'block';
+    gameOverScreen.classList.remove('show');
+    gameOverScreen.style.display = 'none';
+    updateHUD();
+    lastUpdate = performance.now();
+    SoundEngine.playMenu();
+    requestAnimationFrame(gameLoop);
+}
+
+// =============================================
+// ===== GAME LOOP =====
+// =============================================
+function gameLoop(timestamp) {
+    if (!gameState.running) return;
+    if (!gameState.paused && timestamp - lastUpdate >= speedLevels[gameState.speedLevel]) {
+        update();
+        lastUpdate = timestamp;
+    }
+    drawGame();
+    requestAnimationFrame(gameLoop);
+}
+
+// =============================================
+// ===== UPDATE =====
+// =============================================
+function update() {
+    if (gameState.gameOver) return;
+    direction = { ...nextDirection };
+    const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+    // wall wrap
+    if (head.x < 0) head.x = tileCount - 1;
+    if (head.x >= tileCount) head.x = 0;
+    if (head.y < 0) head.y = tileCount - 1;
+    if (head.y >= tileCount) head.y = 0;
+    // self collision
+    if (snake.some(s => s.x === head.x && s.y === head.y)) {
+        gameOver();
+        return;
+    }
+    // obstacle collision
+    if (obstacles.some(o => o.x === head.x && o.y === head.y)) {
+        gameOver();
+        return;
+    }
+    snake.unshift(head);
+    // food
+    if (head.x === food.x && head.y === food.y) {
+        let baseScore = 10 + combo * 2;
+        let baseCoins = 5 + combo;
+        
+        gameState.score += baseScore;
+        combo++;
+        
+        // Apply cheats
+        if (gameState.cheats.x10Coins) {
+            baseCoins *= 10;
+        }
+        if (gameState.cheats.infiniteCoins) {
+            baseCoins += 1000;
+        }
+        
+        gameState.coins += baseCoins;
+        
+        if (gameState.score > gameState.highScore) gameState.highScore = gameState.score;
+        generateFood();
+        updateHUD();
+        SoundEngine.playEat(); // <--- SOUND: eating food
+        // chance to spawn powerup
+        if (!powerup && Math.random() < 0.1) {
+            powerup = {
+                x: randomInt(1, tileCount - 2),
+                y: randomInt(1, tileCount - 2)
+            };
+        }
+        // chance to spawn obstacle
+        if (gameState.score > 50 && obstacles.length < 5 && Math.random() < 0.05) {
+            let obsPos;
+            do {
+                obsPos = {
+                    x: randomInt(1, tileCount - 2),
+                    y: randomInt(1, tileCount - 2)
+                };
+            } while (
+                snake.some(s => s.x === obsPos.x && s.y === obsPos.y) ||
+                (food.x === obsPos.x && food.y === obsPos.y) ||
+                (powerup && powerup.x === obsPos.x && powerup.y === obsPos.y) ||
+                obstacles.some(o => o.x === obsPos.x && o.y === obsPos.y)
+            );
+            obstacles.push(obsPos);
+        }
+    } else {
+        snake.pop();
+        combo = 0;
+    }
+    // powerup
+    if (powerup && head.x === powerup.x && head.y === powerup.y) {
+        let powerCoins = 50;
+        if (gameState.cheats.x10Coins) powerCoins *= 10;
+        if (gameState.cheats.infiniteCoins) powerCoins += 1000;
+        gameState.coins += powerCoins;
+        powerup = null;
+        updateHUD();
+        SoundEngine.playEat(); // <--- SOUND: eating powerup
+    }
+}
+
+// =============================================
+// ===== DRAW =====
+// =============================================
+function drawGame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i <= tileCount; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * gridSize, 0);
+        ctx.lineTo(i * gridSize, canvas.height);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, i * gridSize);
+        ctx.lineTo(canvas.width, i * gridSize);
+        ctx.stroke();
+    }
+    
+    const currentSkinColors = skinColors[gameState.skin] || skinColors.default;
+
+
+    // snake
+    snake.forEach((seg, i) => {
+        const isHead = i === 0;
+        const x = seg.x * gridSize, y = seg.y * gridSize;
+        const color = isHead ? currentSkinColors.head : currentSkinColors.body;
+        ctx.shadowColor = color;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.roundRect(x + 1, y + 1, gridSize - 2, gridSize - 2, 4);
+        ctx.fill();
+        if (isHead) {
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(x + gridSize * 0.7, y + gridSize * 0.3, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(x + gridSize * 0.3, y + gridSize * 0.3, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    });
+    ctx.shadowBlur = 0;
+    // food
+    ctx.shadowColor = '#ff6b6b';
+    ctx.shadowBlur = 15;
+    ctx.fillStyle = '#ff6b6b';
+    ctx.beginPath();
+    ctx.arc(food.x * gridSize + gridSize/2, food.y * gridSize + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
+    ctx.fill();
+    // obstacles
+    ctx.shadowBlur = 0;
+    obstacles.forEach(obs => {
+        ctx.fillStyle = '#636e72';
+        ctx.fillRect(obs.x * gridSize + 2, obs.y * gridSize + 2, gridSize - 4, gridSize - 4);
+    });
+    // powerup
+    if (powerup) {
+        ctx.shadowColor = '#fdcb6e';
+        ctx.shadowBlur = 20;
+        ctx.fillStyle = '#fdcb6e';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⭐', powerup.x * gridSize + gridSize/2, powerup.y * gridSize + gridSize/2);
+        ctx.shadowBlur = 0;
+    }
+}
+
+// roundRect polyfill
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+        if (r > w/2) r = w/2;
+        if (r > h/2) r = h/2;
+        this.moveTo(x + r, y);
+        this.arcTo(x + w, y, x + w, y + h, r);
+        this.arcTo(x + w, y + h, x, y + h, r);
+        this.arcTo(x, y + h, x, y, r);
+        this.arcTo(x, y, x + w, y, r);
+        return this;
+    };
+}
+
+// =============================================
+// ===== GAME OVER =====
+// =============================================
+function gameOver() {
+    gameState.running = false;
+    gameState.gameOver = true;
+    if (gameState.score > gameState.highScore) {
+        gameState.highScore = gameState.score;
+        localStorage.setItem('snakeHighScore', gameState.highScore);
+    }
+    localStorage.setItem('snakeCoins', gameState.coins);
+    goScoreEl.textContent = gameState.score;
+    goBestEl.textContent = gameState.highScore;
+    goCoinsEl.textContent = gameState.coins;
+    gameOverScreen.style.display = 'flex';
+    gameOverScreen.classList.add('show');
+    SoundEngine.playCollision(); // <--- SOUND: collision / game over
+}
+
+// =============================================
+// ===== UPDATE HUD =====
+// =============================================
+function updateHUD() {
+    scoreEl.textContent = gameState.score;
+    highScoreEl.textContent = gameState.highScore;
+    coinsEl.textContent = gameState.coins;
+}
+
+// =============================================
+// ===== HANDLE DPAD =====
+// =============================================
+document.querySelectorAll('.dpad-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!gameState.running) return;
+        const dir = btn.dataset.dir;
+        if (dir === 'up' && direction.y !== 1) nextDirection = { x: 0, y: -1 };
+        else if (dir === 'down' && direction.y !== -1) nextDirection = { x: 0, y: 1 };
+        else if (dir === 'left' && direction.x !== -1) nextDirection = { x: 1, y: 0 };
+        else if (dir === 'right' && direction.x !== 1) nextDirection = { x: -1, y: 0 };
+        SoundEngine.playClick(); // <--- SOUND: dpad click
+    });
+});
+
+// keyboard
+document.addEventListener('keydown', (e) => {
+    if (!gameState.running) return;
+    const key = e.key;
+    if ((key === 'ArrowUp' || key === 'w' || key === 'W') && direction.y !== 1) nextDirection = { x: 0, y: -1 };
+    else if ((key === 'ArrowDown' || key === 's' || key === 'S') && direction.y !== -1) nextDirection = { x: 0, y: 1 };
+    else if ((key === 'ArrowLeft' || key === 'a' || key === 'A') && direction.x !== -1) nextDirection = { x: 1, y: 0 };
+    else if ((key === 'ArrowRight' || key === 'd' || key === 'D') && direction.x !== 1) nextDirection = { x: -1, y: 0 };
+    else return;
+    e.preventDefault();
+    SoundEngine.playClick(); // <--- SOUND: keyboard click
+});
+
+// =============================================
+// ===== INIT EVENTS =====
+// =============================================
+function initEvents() {
+    // Main menu buttons
+    document.getElementById('btn-start').addEventListener('click', (e) => {
+        e.stopPropagation();
+        SoundEngine.playMenu(); // <--- SOUND: menu button
+        startGame();
+    });
+    document.getElementById('btn-shop').addEventListener('click', (e) => {
+        e.stopPropagation();
+        SoundEngine.playMenu();
+        renderShop();
+        showModal('shop-modal');
+    });
+    document.getElementById('btn-skins').addEventListener('click', (e) => {
+        e.stopPropagation();
+        SoundEngine.playMenu();
+        renderSkins();
+        showModal('skins-modal');
+    });
+    document.getElementById('btn-settings').addEventListener('click', (e) => {
+        e.stopPropagation();
+        SoundEngine.playMenu();
+        loadSettings();
+        showModal('settings-modal');
+    });
+    document.getElementById('btn-secret').addEventListener('click', (e) => {
+        e.stopPropagation();
+        SoundEngine.playMenu();
+        const code = prompt('🔑 کد مخفی را وارد کنید:');
+        if (code === '6871') {
+            renderCheats();
+            showModal('secret-modal');
+            SoundEngine.playEat();
+        } else if (code !== null) {
+            alert('❌ کد اشتباه است!');
+            SoundEngine.playCollision();
+        }
+    });
+    document.getElementById('btn-about').addEventListener('click', (e) => {
+        e.stopPropagation();
+        SoundEngine.playMenu();
+        showModal('about-modal');
+    });
+
+    // Game over buttons
+    document.getElementById('btn-restart').addEventListener('click', (e) => {
+        e.stopPropagation();
+        SoundEngine.playMenu();
+        startGame();
+    });
+    document.getElementById('btn-home').addEventListener('click', (e) => {
+        e.stopPropagation();
+        SoundEngine.playMenu();
+        gameState.running = false;
+        gameContainer.style.display = 'none';
+        gameOverScreen.style.display = 'none';
+        mainMenu.style.display = 'block';
+    });
+
+    // Modal close buttons
+    document.querySelectorAll('[data-close]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const modalId = btn.dataset.close;
+            closeModal(modalId);
+            SoundEngine.playClick();
+        });
+    });
+    // Overlay close
+    document.querySelectorAll('[data-modal-close]').forEach(overlay => {
+        overlay.addEventListener('click', () => {
+            const modalId = overlay.dataset.modalClose;
+            closeModal(modalId);
+            SoundEngine.playClick();
+        });
+    });
+
+    // Settings save
+    document.getElementById('btn-save-settings').addEventListener('click', (e) => {
+        e.stopPropagation();
+        saveSettings();
+        SoundEngine.playMenu();
+    });
+
+    // Click on empty space (body) -> sound
+    document.addEventListener('click', (e) => {
+        // Only play if click is not on a button, canvas, dpad, or inside modal
+        const tag = e.target.tagName.toLowerCase();
+        if (tag === 'button' || tag === 'select' || tag === 'option' || tag === 'a') return;
+        if (e.target.closest('.dpad') || e.target.closest('.modal-content') || e.target.closest('#game-canvas')) return;
+        SoundEngine.playClick();
+    });
+}
+
+// =============================================
+// ===== INIT =====
+// =============================================
+initEvents();
+loadSettings();
+updateUIText();
+if (gameState.highScore > 0) updateHUD();
+</script>
+</body>
+      </html>
