@@ -1531,5 +1531,11 @@ loadSettings();
 updateUIText();
 if (gameState.highScore > 0) updateHUD();
 </script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+
 </body>
       </html>
